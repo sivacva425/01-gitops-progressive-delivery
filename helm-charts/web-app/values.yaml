@@ -1,0 +1,13 @@
+replicaCount: 3
+image:
+  repository: sivacva25/production-app
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  stablePort: 80
+  canaryPort: 80
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "webapp.local"
