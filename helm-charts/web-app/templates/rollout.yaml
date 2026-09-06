@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Release.Name }}-rollout
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    canary:
+      stableService: {{ .Release.Name }}-stable
+      canaryService: {{ .Release.Name }}-canary
+      trafficRouting:
+        nginx:
+          stableIngress: {{ .Release.Name }}-ingress
+      analysis:
+        templates:
+          - templateName: success-rate-check
+      steps:
+        - setWeight: 10
+          pause: { duration: 2m }
+        - setWeight: 50
+          pause: { duration: 5m }
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: python-web-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
