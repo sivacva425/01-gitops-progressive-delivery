@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/sivacva425/git-ops-repo-.git'
+    repoURL: 'https://github.com/sivacva425/git-ops-repo.git'
     targetRevision: HEAD
     path: helm-charts/web-app
   destination:
@@ -16,5 +16,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
