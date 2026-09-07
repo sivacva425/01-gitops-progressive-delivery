@@ -1,0 +1,27 @@
+name: DevSecOps Pipeline
+on:
+  push:
+    branches: [main]
+    paths: ['src/**']
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+      - name: Build & Push to ECR
+        run: |
+          docker build -t my-ecr-repo:${{ github.sha }} .
+          docker push my-ecr-repo:${{ github.sha }}
+      - name: Update GitOps Repo
+        run: |
+          git clone https://${{ secrets.INFRA_REPO_PAT }}@github.com/sivacva425/git-ops-repo.git
+          cd git-ops-repo
+          sed -i "s/tag: .*/tag: \"${{ github.sha }}\"/" helm-charts/web-app/values.yaml
+          git commit -am "Update image tag to ${{ github.sha }} [skip ci]"
+          git push
